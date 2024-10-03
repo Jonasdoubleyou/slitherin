@@ -1,6 +1,7 @@
 from enum import Enum
 import random
 from typing import List
+import time
 
 # ------- Step --------
 # The direction into which tiles move by lifting the field on one side
@@ -45,13 +46,16 @@ class StepDirection(Enum):
     def offset_in_dir(self, pos: int):
         pos_in_axis = int(pos / SIZE_X) if self.is_y() else (pos % SIZE_X)
         return (self.size() - 1) - pos_in_axis if self.is_opposite() else pos_in_axis
-    
+
+    def max_moves(self, pos: int):
+        return (self.size() - 1) - self.offset_in_dir(pos)
+
     def is_at_border(self, pos: int):
         return self.offset_in_dir(pos) == self.size() - 1
     
     @staticmethod
     def random():
-        return StepDirection(random.randint(1, 4))
+        return StepDirection(random.randint(0, 3))
     
 
 # A step that modifies the puzzle state, to arrive at a new puzzle state
@@ -171,13 +175,27 @@ class PuzzleState:
             else:
                 direction = StepDirection.RIGHT if opposite else StepDirection.LEFT
 
-        pos_in_direction = to_x(self.free_pos) if direction.is_x() else to_y(self.free_pos)
-        fields_in_direction = (SIZE_X - 1) if direction.is_x() else (SIZE_Y - 1)
-        max_moves = (fields_in_direction - pos_in_direction) if not direction.is_opposite() else pos_in_direction
+        max_moves = direction.max_moves(self.free_pos)
         if max_moves == 0: # useless Step that does nothing
             return self.randomStep(prevStep)
         moves = random.randint(1, max_moves)
         return Step(direction, moves)
+    
+    def possibleSteps(self, prevStep: Step = None):
+        if prevStep == None:
+            possibleDirections = [StepDirection.UP, StepDirection.DOWN, StepDirection.LEFT, StepDirection.RIGHT]
+        else:
+            if prevStep.direction.is_x():
+                possibleDirections = [StepDirection.DOWN, StepDirection.UP]
+            else:
+                possibleDirections = [StepDirection.RIGHT, StepDirection.LEFT]
+        possibleSteps: List[Step] = []
+        for direction in possibleDirections:
+            max_moves = direction.max_moves(self.free_pos)
+            for move_count in range(1, max_moves + 1):
+                possibleSteps.append(Step(direction, move_count))
+        return possibleSteps
+
     
 class StepSequence:
     steps: List[Step] = list()
@@ -198,6 +216,10 @@ class StepSequence:
         for step in reversed(self.steps):
             steps.append(step.inverse())
         return StepSequence(steps)
+    
+    def apply(self, puzzle: PuzzleState):
+        for step in self.steps:
+            puzzle.apply(step)
 
     def to_str(self):
         result = ""
@@ -232,4 +254,81 @@ class StepSequenceCursor:
         result += "\n\n"
         result += self.puzzle.to_str(self.currentStep() if self.has_next() else None)
         return result
+
+class PuzzleSolver:
+    def __init__(self, puzzle: PuzzleState, target: PuzzleState = PuzzleState()):
+        self.puzzle = puzzle
+        self.target = target
+        self.solution = None
+
+    def solve_adaptive(self):
+        for max_depth in (5, 10, 15, 20):
+            self.solve(max_depth)
+            if self.solution != None:
+                return
+
+    def solve(self, max_depth: int):
+        if self.puzzle.fields == self.target.fields:
+            self.solution = StepSequence(list())
+            return
+        
+        print("solution search with depth " + str(max_depth) + " - about " + str(3 ** max_depth) + " possible paths")
+
+        best_solution: List[Step] = None
+
+        current_path: List[Step] = list()
+        state = PuzzleState(self.puzzle.fields)
+        step_count = 0
+
+        start_time = time.time_ns()
+
+        def recurse(depth: int):
+            nonlocal max_depth
+            nonlocal current_path
+            nonlocal state
+            nonlocal step_count
+            nonlocal best_solution
+
+            if depth > max_depth:
+                return False
+            
+            for step in state.possibleSteps(current_path[-1] if len(current_path) > 0 else None):
+                step_count += 1
+
+                state.apply(step)
+                current_path.append(step)
+
+                # print(StepSequence(current_path).to_str())
+
+                if state.fields == self.target.fields:
+                    best_solution = current_path.copy()
+                    print("Found solution after " + str(step_count) + " steps")
+                    print(StepSequence(best_solution).to_str())
+
+                    max_depth = depth
+                    state.apply(step.inverse())
+                    current_path.pop()
+                    return False # continue to find better solution
+                
+                found = recurse(depth + 1)
+                if found:
+                    return True
+                
+                state.apply(step.inverse())
+                current_path.pop()
+            
+            return False
+        
+        recurse(0)
+
+        stop_time = time.time_ns()
+        duration = (stop_time - start_time) // 1_000_000
+
+        if best_solution == None:
+            print("No solution found after " + str(step_count) + " steps, " + str(duration) + "ms")
+        else:
+            print("Found solution after " + str(step_count) + " steps, " + str(duration) + "ms")
+            print(StepSequence(best_solution).to_str())
+            self.solution = StepSequence(best_solution)
+
 
