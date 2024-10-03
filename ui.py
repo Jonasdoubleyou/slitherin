@@ -9,11 +9,15 @@ def cls():
 class PuzzleUI:
 
     def init(self):
-        sequence = StepSequence()
-        sequence.fillRandom(10)
-        self.cursor = StepSequenceCursor(sequence)
-
+        shuffle_sequence = StepSequence()
+        shuffle_sequence.fillRandom(10)
+        self.cursor = StepSequenceCursor(shuffle_sequence)
         self.play()
+
+        solve_sequence = shuffle_sequence.invert()
+        self.cursor = StepSequenceCursor(solve_sequence, self.cursor.currentState())
+        self.play()
+
 
     def play(self):
         while self.cursor.has_next():
@@ -24,7 +28,7 @@ class PuzzleUI:
 
         cls()
         print(self.cursor.to_str())
-        sleep(1000)
+        sleep(1)
 
 PuzzleUI().init()
     
