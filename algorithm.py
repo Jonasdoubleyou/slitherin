@@ -247,11 +247,14 @@ class StepSequenceCursor:
         self.puzzle.apply(self.currentStep())
         self.index += 1
 
-    def to_str(self):
-        result = self.sequence.to_str() + "\n"
-        if self.has_next():
-            result += (" " * (1 + self.index * 3)) + "^"
-        result += "\n\n"
+    def to_str(self, hide_sequence = False):
+        result = ""
+        if not hide_sequence:
+            result = self.sequence.to_str() + "\n"
+            if self.has_next():
+                result += (" " * (1 + self.index * 3)) + "^"
+            result += "\n\n"
+        
         result += self.puzzle.to_str(self.currentStep() if self.has_next() else None)
         return result
 
@@ -272,7 +275,7 @@ class PuzzleSolver:
             self.solution = StepSequence(list())
             return
         
-        print("solution search with depth " + str(max_depth) + " - about " + str(3 ** max_depth) + " possible paths")
+        # print("solution search with depth " + str(max_depth) + " - about " + str(3 ** max_depth) + " possible paths")
 
         best_solution: List[Step] = None
 
@@ -302,8 +305,8 @@ class PuzzleSolver:
 
                 if state.fields == self.target.fields:
                     best_solution = current_path.copy()
-                    print("Found solution after " + str(step_count) + " steps")
-                    print(StepSequence(best_solution).to_str())
+                    # print("Found solution after " + str(step_count) + " steps")
+                    # print(StepSequence(best_solution).to_str())
 
                     max_depth = depth
                     state.apply(step.inverse())
@@ -325,10 +328,11 @@ class PuzzleSolver:
         duration = (stop_time - start_time) // 1_000_000
 
         if best_solution == None:
-            print("No solution found after " + str(step_count) + " steps, " + str(duration) + "ms")
+            pass
+            # print("No solution found after " + str(step_count) + " steps, " + str(duration) + "ms")
         else:
-            print("Found solution after " + str(step_count) + " steps, " + str(duration) + "ms")
-            print(StepSequence(best_solution).to_str())
+            # print("Found solution after " + str(step_count) + " steps, " + str(duration) + "ms")
+            # print(StepSequence(best_solution).to_str())
             self.solution = StepSequence(best_solution)
 
 
