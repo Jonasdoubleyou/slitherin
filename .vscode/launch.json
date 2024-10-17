@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run locally",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main_standalone.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Run on EV3",
+            "type": "ev3devBrowser",
+            "request": "launch",
+            "program": "/home/robot/${workspaceFolderBasename}/main_ev3.py",
+            "interactiveTerminal": true
+        }
+    ]
+}
