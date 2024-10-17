@@ -1,54 +1,49 @@
-import os
-from time import sleep, time_ns
 from algorithm import PuzzleSolver, PuzzleState, StepSequence, StepSequenceCursor, FREE_FIELD
 
-
-def cls():
-    os.system('cls' if os.name=='nt' else 'clear')
-
 class PuzzleUI:
+    def __init__(self, ctrl):
+        self.ctrl = ctrl
 
     def init(self):
         while True:
-            cls()
-            print("Game Mode:")
-            type = self.select(["random", "template", "scan"])
+            self.ctrl.cls()
+            type = self.ctrl.select("Game Mode", ["random", "template", "scan"])
             if type == "random":
                 self.init_random()
             elif type == "template":
                 self.init_template()
             elif type == "scan":
-                print("Scan not yet supported")
+                self.ctrl.print("Scan not yet supported")
                 continue
 
-            cls()
-            print(self.puzzle.to_str())
-            self.wait_for_enter()
+            self.ctrl.cls()
+            self.ctrl.print(self.puzzle.to_str())
+            self.ctrl.wait_for_enter()
 
-            start_time = time_ns()
+            start_time = self.ctrl.time_ms()
             self.solve()
             self.play()
-            duration = (time_ns() - start_time) // 1_000_000 // 1000
+            duration = (self.ctrl.time_ms() - start_time) // 1000
 
-            sleep(5)
+            self.ctrl.sleep(5)
 
-            cls()
-            print("I WON")
-            print("in " + str(duration) + "s")
-            print()
-            print("Want to play again?")
-            self.wait_for_enter()
+            self.ctrl.cls()
+            self.ctrl.print("I WON")
+            self.ctrl.print("in " + str(duration) + "s")
+            self.ctrl.print("")
+            self.ctrl.print("Want to play again?")
+            self.ctrl.wait_for_enter()
 
     def init_random(self):
         shuffle_sequence = StepSequence()
-        shuffle_sequence.fillRandom(15)
+        # TODO: Increase to 15
+        shuffle_sequence.fillRandom(5)
         self.puzzle = PuzzleState()
         shuffle_sequence.apply(self.puzzle)
 
     def init_template(self):
-        cls()
-        print("Difficulty:")
-        template = self.select(["easy", "medium", "hard"])
+        self.ctrl.cls()
+        template = self.ctrl.select("Difficulty", ["easy", "medium", "hard"])
         if template == "easy":
             self.puzzle = PuzzleState((1, 2, 3, 4, FREE_FIELD, 5, 7, 8, 6))
         elif template == "medium":
@@ -58,8 +53,8 @@ class PuzzleUI:
 
 
     def solve(self):
-        cls()
-        print("Solving Puzzle")
+        self.ctrl.cls()
+        self.ctrl.print("Solving Puzzle")
         solver = PuzzleSolver(self.puzzle)
         solver.solve_adaptive()
         if solver.solution == None:
@@ -67,32 +62,20 @@ class PuzzleUI:
         
         self.cursor = StepSequenceCursor(solver.solution, self.puzzle)
 
-        cls()
-        print("Solved Puzzle")
+        self.ctrl.cls()
+        self.ctrl.print("Solved Puzzle")
 
     def play(self):
         while self.cursor.has_next():
-            cls()
-            print(self.cursor.to_str(hide_sequence=True))
-            sleep(0.7)
+            self.ctrl.cls()
+            self.ctrl.print(self.cursor.to_str(hide_sequence=True))
+            self.ctrl.sleep(0.7)
             self.cursor.next()
 
         if self.cursor.currentState().fields != PuzzleState().fields:
             raise Exception("Failed to solve puzzle, did not arrive at target state")
 
-        cls()
-        print(self.cursor.to_str(hide_sequence=True))
+        self.ctrl.cls()
+        self.ctrl.print(self.cursor.to_str(hide_sequence=True))
 
-    def wait_for_enter(self):
-        input("go?")
-
-    def select(self, values):
-        for (idx, value) in enumerate(values):
-            print(" " + str(idx) + " - " + value)
-        selection = input(" > ")
-        return values[int(selection)]
-        
-
-
-PuzzleUI().init()
     

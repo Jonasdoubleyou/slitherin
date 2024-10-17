@@ -1,15 +1,10 @@
-from enum import Enum
 import random
-from typing import List
-import time
 
 # ------- Step --------
 # The direction into which tiles move by lifting the field on one side
-class StepDirection(Enum):
-    UP = 0
-    LEFT = 1
-    DOWN = 2
-    RIGHT = 3
+class StepDirection:
+    def __init__(self, value):
+        self.value = value
 
     def inverse(self):
         return StepDirection(((self.value + 2) %4))
@@ -56,7 +51,12 @@ class StepDirection(Enum):
     @staticmethod
     def random():
         return StepDirection(random.randint(0, 3))
-    
+
+StepDirection.UP = StepDirection(0)
+StepDirection.LEFT = StepDirection(1)
+StepDirection.DOWN = StepDirection(2)
+StepDirection.RIGHT = StepDirection(3)
+
 
 # A step that modifies the puzzle state, to arrive at a new puzzle state
 class Step:
@@ -134,14 +134,14 @@ class PuzzleState:
             raise
 
     def to_str(self, step: Step = None) -> str:
-        line_length = SIZE_X * 5
-        result = bytearray(((" " * (line_length - 1)) + "\n") * (SIZE_Y * 3), "utf-8")
+        line_length = SIZE_X * 4
+        result = bytearray(((" " * (line_length - 1)) + "\n") * (SIZE_Y * 2 + 1), "utf-8")
         
         # turns coordinates into fields into string positions
         def to_str(pos: int):
             x = to_x(pos)
             y = to_y(pos)
-            return x * 5 + 1 + (y * 3 + 1) * line_length
+            return x * 4 + 1 + (y * 2 + 1) * line_length
 
         # Fill with fields
         for y in range(0, SIZE_Y):
@@ -178,7 +178,7 @@ class PuzzleState:
         max_moves = direction.max_moves(self.free_pos)
         if max_moves == 0: # useless Step that does nothing
             return self.randomStep(prevStep)
-        moves = random.randint(1, max_moves)
+        moves = 1 if max_moves == 1 else random.randint(1, max_moves)
         return Step(direction, moves)
     
     def possibleSteps(self, prevStep: Step = None):
@@ -189,7 +189,7 @@ class PuzzleState:
                 possibleDirections = [StepDirection.DOWN, StepDirection.UP]
             else:
                 possibleDirections = [StepDirection.RIGHT, StepDirection.LEFT]
-        possibleSteps: List[Step] = []
+        possibleSteps = []
         for direction in possibleDirections:
             max_moves = direction.max_moves(self.free_pos)
             for move_count in range(1, max_moves + 1):
@@ -198,9 +198,9 @@ class PuzzleState:
 
     
 class StepSequence:
-    steps: List[Step] = list()
+    steps = list()
 
-    def __init__(self, steps: List[Step] = list()):
+    def __init__(self, steps = list()):
         self.steps = steps
 
     def fillRandom(self, length: int, puzzle: PuzzleState = PuzzleState()):
@@ -277,13 +277,11 @@ class PuzzleSolver:
         
         # print("solution search with depth " + str(max_depth) + " - about " + str(3 ** max_depth) + " possible paths")
 
-        best_solution: List[Step] = None
+        best_solution = None
 
-        current_path: List[Step] = list()
+        current_path = list()
         state = PuzzleState(self.puzzle.fields)
         step_count = 0
-
-        start_time = time.time_ns()
 
         def recurse(depth: int):
             nonlocal max_depth
@@ -323,9 +321,6 @@ class PuzzleSolver:
             return False
         
         recurse(0)
-
-        stop_time = time.time_ns()
-        duration = (stop_time - start_time) // 1_000_000
 
         if best_solution == None:
             pass
