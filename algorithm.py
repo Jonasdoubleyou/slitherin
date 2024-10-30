@@ -6,6 +6,9 @@ class StepDirection:
     def __init__(self, value):
         self.value = value
 
+    def __eq__(self, other):
+        return self.value == other.value
+
     def inverse(self):
         return StepDirection(((self.value + 2) %4))
     
@@ -36,6 +39,7 @@ class StepDirection:
             return ">"
         if self == StepDirection.LEFT:
             return "<"
+        raise Exception("Unknown direction")
         
     # ---- Position Utilities -----
     def offset_in_dir(self, pos: int):
