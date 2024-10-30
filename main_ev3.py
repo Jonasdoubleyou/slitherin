@@ -13,6 +13,15 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile, Font
 
 from ui import PuzzleUI
+from algorithm import Step, StepDirection
+
+TILT_X = 60
+SPEED_X = 60
+TILT_Y = 130
+SPEED_Y = 60
+
+SPEED_LIFTER = 240
+OFFSET_LIFTER = 2 * 240
 
 # Interface to the EV3 environment
 class UIController:
@@ -22,6 +31,62 @@ class UIController:
     def __init__(self):
         small_font = Font(size=15, bold=True, monospace=True)
         self.ev3.screen.set_font(small_font)
+
+        self.axis_x = Motor(Port.A)
+        self.axis_x.reset_angle(0)
+        self.axis_y = Motor(Port.B)
+        self.axis_y.reset_angle(0)
+        self.lifter = Motor(Port.C)
+        self.lifter.reset_angle(0)
+        self.lock_middle = False
+
+    def init(self):
+        while True:
+            selection = self.select("Sliding Puzzle", ["Start", "Axis", "Lifter"])
+            if selection == "Axis":
+                self.calibrate_axis()
+            if selection == "Lifter":
+                self.calibrate_lifter()
+            elif selection == "Start":
+                self.axis_x.reset_angle(0)
+                self.axis_y.reset_angle(0)
+
+                PuzzleUI(self).init()
+
+    def calibrate_lifter(self):
+        self.cls()
+        self.print("   ^   ")
+        self.print(" LIFT  ")
+        self.print("   v   ")
+
+        while True:
+            btn = self.wait_for_button()
+            if btn == Button.DOWN:
+                self.lifter.run_angle(SPEED_LIFTER, 60)
+            elif btn == Button.UP:
+                self.lifter.run_angle(SPEED_LIFTER, -60)
+            elif btn == Button.CENTER:
+                return
+
+    def calibrate_axis(self):
+        self.cls()
+        self.print("   ^   ")
+        self.print("<     >")
+        self.print("   v   ")
+
+        while True:
+            btn = self.wait_for_button()
+            if btn == Button.DOWN:
+                self.do_tilt_y(10)
+            elif btn == Button.UP:
+                self.do_tilt_y(-10)
+            elif btn == Button.LEFT:
+                self.do_tilt_x(-10)
+            elif btn == Button.RIGHT:
+                self.do_tilt_x(10)
+            elif btn == Button.CENTER:
+                return
+        
 
     def wait_for_button(self):
         while len(self.ev3.buttons.pressed()) != 1:
@@ -34,15 +99,9 @@ class UIController:
     # ---- Interface ----
     def cls(self):
         self.ev3.screen.clear()
-        self.rowIdx = 0
 
     def print(self, text: str):
-        for row in text.rstrip().split("\n"):
-            self.ev3.screen.draw_text(5, 5 + 15 * self.rowIdx, row)
-            self.rowIdx += 1
-            if self.rowIdx > 9:
-                self.rowIdx = 0
-                self.cls()
+        self.ev3.screen.print(text.rstrip())
 
     def time_ms(self):
         return 0 # TODO
@@ -72,8 +131,52 @@ class UIController:
                     selectedIdx += 1
             elif btn == Button.CENTER:
                 return values[selectedIdx]
+    
+    def print_move(self, move: str):
+        self.ev3.screen.draw_text(100, 30, move)
+
+    def do_tilt_x(self, degree):
+        self.print_move("RIGHT" if degree > 0 else "LEFT")
+        self.axis_x.run_angle(SPEED_X, -degree)
+    
+    def do_tilt_y(self, degree):
+        self.print_move("DOWN" if degree > 0 else "UP")
+        self.axis_y.run_angle(SPEED_Y, -degree)
 
 
-PuzzleUI(UIController()).init()
+    def reset_tilt(self):
+        self.axis_x.run_target(SPEED_X, 0)
+        self.axis_y.run_target(SPEED_Y, 0)
+    
+    def lock(self, middle):
+        if middle == self.lock_middle:
+            return
+
+        if middle:
+            self.lifter.run_angle(SPEED_LIFTER, -OFFSET_LIFTER)
+        else:
+            self.lifter.run_angle(SPEED_LIFTER, OFFSET_LIFTER)
+        
+        self.lock_middle = middle
+
+    def do_move(self, step: Step):
+        if step.direction == StepDirection.UP:
+            self.do_tilt_y(-TILT_Y)
+        elif step.direction == StepDirection.DOWN:
+            self.do_tilt_y(TILT_Y)
+        elif step.direction == StepDirection.LEFT:
+            self.do_tilt_x(-TILT_X)
+        elif step.direction == StepDirection.RIGHT:
+            self.do_tilt_x(TILT_X)
+        
+        self.lock(not self.lock_middle)
+
+        self.sleep(1)
+
+        self.reset_tilt()
+           
+
+
+UIController().init()
 
 

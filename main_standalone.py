@@ -27,5 +27,8 @@ class UIController:
             self.print(" " + str(idx) + " - " + value)
         selection = input(" > ")
         return values[int(selection)]
+    
+    def do_move(self, step):
+        sleep(0.7)
 
 PuzzleUI(UIController()).init()

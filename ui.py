@@ -39,7 +39,9 @@ class PuzzleUI:
         # TODO: Increase to 15
         shuffle_sequence.fillRandom(5)
         self.puzzle = PuzzleState()
-        shuffle_sequence.apply(self.puzzle)
+        self.cursor = StepSequenceCursor(shuffle_sequence)
+        self.play()
+        self.puzzle = self.cursor.currentState()
 
     def init_template(self):
         self.ctrl.cls()
@@ -69,11 +71,13 @@ class PuzzleUI:
         while self.cursor.has_next():
             self.ctrl.cls()
             self.ctrl.print(self.cursor.to_str(hide_sequence=True))
-            self.ctrl.sleep(0.7)
+
+            self.ctrl.do_move(self.cursor.currentStep())
+
             self.cursor.next()
 
-        if self.cursor.currentState().fields != PuzzleState().fields:
-            raise Exception("Failed to solve puzzle, did not arrive at target state")
+        # if self.cursor.currentState().fields != PuzzleState().fields:
+        #     raise Exception("Failed to solve puzzle, did not arrive at target state")
 
         self.ctrl.cls()
         self.ctrl.print(self.cursor.to_str(hide_sequence=True))
