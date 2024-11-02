@@ -72,7 +72,7 @@ class PuzzleUI:
             self.ctrl.cls()
             self.ctrl.print(self.cursor.to_str(hide_sequence=True))
 
-            self.ctrl.do_move(self.cursor.currentStep())
+            self.ctrl.do_move(self.cursor.currentStep(), self.cursor.currentState())
 
             self.cursor.next()
 

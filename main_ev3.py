@@ -13,15 +13,16 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile, Font
 
 from ui import PuzzleUI
-from algorithm import Step, StepDirection
+from algorithm import PuzzleState, Step, StepDirection
 
 TILT_X = 60
 SPEED_X = 60
 TILT_Y = 130
 SPEED_Y = 60
 
-SPEED_LIFTER = 240
-OFFSET_LIFTER = 2 * 240
+SPEED_LIFTER = 700
+# The angle by which the lifter moves up or down
+OFFSET_LIFTER = 350
 
 # Interface to the EV3 environment
 class UIController:
@@ -38,7 +39,7 @@ class UIController:
         self.axis_y.reset_angle(0)
         self.lifter = Motor(Port.C)
         self.lifter.reset_angle(0)
-        self.lock_middle = False
+        self.lock_even = False
 
     def init(self):
         while True:
@@ -66,6 +67,14 @@ class UIController:
             elif btn == Button.UP:
                 self.lifter.run_angle(SPEED_LIFTER, -60)
             elif btn == Button.CENTER:
+                self.lifter.reset_angle(0)
+                self.lock_even = False
+                self.lock(True)
+                self.lock(False)
+                self.lock(True)
+                self.lock(False)
+                self.lock(True)
+                self.lock(False)
                 return
 
     def calibrate_axis(self):
@@ -148,18 +157,23 @@ class UIController:
         self.axis_x.run_target(SPEED_X, 0)
         self.axis_y.run_target(SPEED_Y, 0)
     
-    def lock(self, middle):
-        if middle == self.lock_middle:
+    def lock(self, even):
+        if even == self.lock_even:
             return
 
-        if middle:
-            self.lifter.run_angle(SPEED_LIFTER, -OFFSET_LIFTER)
+        if even:
+            self.lifter.run_target(SPEED_LIFTER, -OFFSET_LIFTER)
         else:
-            self.lifter.run_angle(SPEED_LIFTER, OFFSET_LIFTER)
+            self.lifter.run_target(SPEED_LIFTER, OFFSET_LIFTER)
         
-        self.lock_middle = middle
+        self.lock_even = even
 
-    def do_move(self, step: Step):
+    def do_move(self, step: Step, state: PuzzleState):
+        # If the target is an even position, lock it.
+        # This inversely unlocks all tiles moving to
+        target_even = (state.free_pos % 2) == 0
+        self.lock(target_even)
+
         if step.direction == StepDirection.UP:
             self.do_tilt_y(-TILT_Y)
         elif step.direction == StepDirection.DOWN:
@@ -169,9 +183,9 @@ class UIController:
         elif step.direction == StepDirection.RIGHT:
             self.do_tilt_x(TILT_X)
         
-        self.lock(not self.lock_middle)
-
-        self.sleep(1)
+        for i in range(1, step.move_count):
+            self.lock(not self.lock_even)
+            self.sleep(1)
 
         self.reset_tilt()
            

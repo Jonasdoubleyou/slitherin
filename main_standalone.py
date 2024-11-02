@@ -1,4 +1,5 @@
 import os
+from algorithm import PuzzleState
 from ui import PuzzleUI
 from time import time_ns, sleep
 
@@ -28,7 +29,7 @@ class UIController:
         selection = input(" > ")
         return values[int(selection)]
     
-    def do_move(self, step):
+    def do_move(self, step, state: PuzzleState):
         sleep(0.7)
 
 PuzzleUI(UIController()).init()
