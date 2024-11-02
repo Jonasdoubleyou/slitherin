@@ -15,8 +15,8 @@ from pybricks.media.ev3dev import SoundFile, ImageFile, Font
 from ui import PuzzleUI
 from algorithm import PuzzleState, Step, StepDirection
 
-TILT_X = 60
-SPEED_X = 60
+TILT_X = 240
+SPEED_X = 200
 TILT_Y = 130
 SPEED_Y = 60
 
@@ -146,7 +146,7 @@ class UIController:
 
     def do_tilt_x(self, degree):
         self.print_move("RIGHT" if degree > 0 else "LEFT")
-        self.axis_x.run_angle(SPEED_X, -degree)
+        self.axis_x.run_angle(SPEED_X, degree)
     
     def do_tilt_y(self, degree):
         self.print_move("DOWN" if degree > 0 else "UP")
