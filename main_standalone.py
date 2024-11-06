@@ -32,4 +32,7 @@ class UIController:
     def do_move(self, step, state: PuzzleState):
         sleep(0.7)
 
+    def finish(self):
+        pass
+
 PuzzleUI(UIController()).init()

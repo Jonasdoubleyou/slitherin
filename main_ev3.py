@@ -15,14 +15,17 @@ from pybricks.media.ev3dev import SoundFile, ImageFile, Font
 from ui import PuzzleUI
 from algorithm import PuzzleState, Step, StepDirection
 
-TILT_X = 240
+TILT_X = 180
 SPEED_X = 200
-TILT_Y = 130
-SPEED_Y = 60
+OVERSHOOT_X = 20
+
+TILT_Y = 360
+SPEED_Y = 400
+OVERSHOOT_Y = 30
 
 SPEED_LIFTER = 700
 # The angle by which the lifter moves up or down
-OFFSET_LIFTER = 350
+OFFSET_LIFTER = 370
 
 # Interface to the EV3 environment
 class UIController:
@@ -39,7 +42,7 @@ class UIController:
         self.axis_y.reset_angle(0)
         self.lifter = Motor(Port.C)
         self.lifter.reset_angle(0)
-        self.lock_even = False
+        self.lock_even = None
 
     def init(self):
         while True:
@@ -154,8 +157,13 @@ class UIController:
 
 
     def reset_tilt(self):
-        self.axis_x.run_target(SPEED_X, 0)
-        self.axis_y.run_target(SPEED_Y, 0)
+        if abs(self.axis_x.angle()) > OVERSHOOT_X:
+            x_correction = -OVERSHOOT_X if self.axis_x.angle() > 0 else OVERSHOOT_X
+            self.axis_x.run_target(SPEED_X, x_correction)
+
+        if abs(self.axis_y.angle()) > OVERSHOOT_Y:
+            y_correction = -OVERSHOOT_Y if self.axis_y.angle() > 0 else OVERSHOOT_Y
+            self.axis_y.run_target(SPEED_Y, y_correction)
     
     def lock(self, even):
         if even == self.lock_even:
@@ -167,6 +175,9 @@ class UIController:
             self.lifter.run_target(SPEED_LIFTER, OFFSET_LIFTER)
         
         self.lock_even = even
+
+    def unlock(self):
+        self.lifter.run_target(SPEED_LIFTER, 0)
 
     def do_move(self, step: Step, state: PuzzleState):
         # If the target is an even position, lock it.
@@ -183,13 +194,18 @@ class UIController:
         elif step.direction == StepDirection.RIGHT:
             self.do_tilt_x(TILT_X)
         
+        if step.move_count == 1:
+            self.sleep(1)
+
         for i in range(1, step.move_count):
             self.lock(not self.lock_even)
             self.sleep(1)
 
         self.reset_tilt()
            
-
+    def finish(self):
+        self.reset_tilt()
+        self.unlock()
 
 UIController().init()
 

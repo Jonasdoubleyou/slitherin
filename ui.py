@@ -7,7 +7,7 @@ class PuzzleUI:
     def init(self):
         while True:
             self.ctrl.cls()
-            type = self.ctrl.select("Game Mode", ["random", "template", "scan"])
+            type = self.ctrl.select("Game Mode", ["random", "template", "scan", "exit"])
             if type == "random":
                 self.init_random()
             elif type == "template":
@@ -15,6 +15,8 @@ class PuzzleUI:
             elif type == "scan":
                 self.ctrl.print("Scan not yet supported")
                 continue
+            else:
+                return
 
             self.ctrl.cls()
             self.ctrl.print(self.puzzle.to_str())
@@ -79,6 +81,7 @@ class PuzzleUI:
         # if self.cursor.currentState().fields != PuzzleState().fields:
         #     raise Exception("Failed to solve puzzle, did not arrive at target state")
 
+        self.ctrl.finish()
         self.ctrl.cls()
         self.ctrl.print(self.cursor.to_str(hide_sequence=True))
 
