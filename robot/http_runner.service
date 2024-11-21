@@ -1,0 +1,13 @@
+Description=HTTP Interface for Slitherin
+
+
+[Service]
+WorkingDirectory=/home/robot/robot/
+ExecStart=/usr/bin/python3 /home/robot/robot/http_runner.py
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+Type=notify
+User=root
+
+[Install]
+WantedBy=default.target

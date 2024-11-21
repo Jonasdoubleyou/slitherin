@@ -15,26 +15,30 @@ class PuzzleUI:
                     self.init_template()
                 else:
                     return
-
-                self.ctrl.cls()
-                self.ctrl.print(self.puzzle.to_str())
-                self.ctrl.wait_for_enter()
-
-                start_time = self.ctrl.time_ms()
-                self.solve()
-                self.play()
-                duration = (self.ctrl.time_ms() - start_time) // 1000
-
-                self.ctrl.sleep(5)
-
-                self.ctrl.cls()
-                self.ctrl.print("I WON")
-                self.ctrl.print("in " + str(duration) + "s")
-                self.ctrl.print("")
-                self.ctrl.print("Want to play again?")
-                self.ctrl.wait_for_enter()
+                
+                self.run()
             except:
                 pass
+            
+
+    def run(self):
+        self.ctrl.cls()
+        self.ctrl.print(self.puzzle.to_str())
+        self.ctrl.wait_for_enter()
+
+        start_time = self.ctrl.time_ms()
+        self.solve()
+        self.play()
+        duration = (self.ctrl.time_ms() - start_time) // 1000
+
+        self.ctrl.sleep(5)
+
+        self.ctrl.cls()
+        self.ctrl.print("I WON")
+        self.ctrl.print("in " + str(duration) + "s")
+        self.ctrl.print("")
+        self.ctrl.print("Want to play again?")
+        self.ctrl.wait_for_enter()
 
     def init_random(self):
         shuffle_sequence = StepSequence()

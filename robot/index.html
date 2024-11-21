@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <title>Slitherin</title>
+    </head>
+    <body>
+        <h2>Slytherin</h2>
+        <div id="status"></div>
+        <input id="pattern" type="text"/>
+        <button id="start">Start</button>
+
+        <script>
+            const statusEl = document.getElementById("status");
+            const patternEl = document.getElementById("pattern");
+            const startEl = document.getElementById("start");
+
+            setInterval(async () => {
+                const status = await (await fetch("/status")).json();
+                statusEl.innerHTML = status?.status ?? "No status";
+            }, 5000);
+
+            startEl.onclick = async () => {
+                let pattern = patternEl.value.split("");
+                if (pattern.length !== 9) {
+                    alert("WRONG PATTERN LENGTH!");
+                    return;
+                }
+
+                if (pattern.some(char => !"012345678".includes(char))) {
+                    alert("INVALID CHAR IN PATTERN!");
+                    return;
+                }
+
+                if (pattern.some((char, i) => pattern.find((other, i2) => i !== i2 && char === other))) {
+                    alert("DUPLICATE PATTERN!");
+                }
+
+                pattern = pattern.map(it => +it);
+
+                await fetch("/command", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        "command": "solve",
+                        "pattern": pattern
+                    })
+                })
+            }
+        </script>
+    </body>
+</html>

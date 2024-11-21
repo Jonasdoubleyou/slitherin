@@ -13,6 +13,8 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile, Font
 from pybricks.messaging import BluetoothMailboxServer, TextMailbox
 
+import json
+
 from ui import PuzzleUI
 from algorithm import PuzzleState, Step, StepDirection
 
@@ -59,15 +61,15 @@ class UIController:
         # return
 
         while True:
-            selection = self.select("Sliding Puzzle", ["Start", "Calibrate Axis", "Calibrate Lifter", "Bluetooth"])
+            selection = self.select("Sliding Puzzle", ["Start", "Calibrate Axis", "Calibrate Lifter", "Connect"])
             if selection == "Calibrate Axis":
                 self.calibrate_axis()
             if selection == "Calibrate Lifter":
                 self.calibrate_lifter()
             elif selection == "Start":
                 PuzzleUI(self).init()
-            elif selection == "Bluetooth":
-                self.connect_bluetooth()
+            elif selection == "Connect":
+                self.connect()
 
     # ---- Calibration -------------------------------------
 
@@ -271,21 +273,53 @@ class UIController:
     def unlock(self):
         self.lifter.run_target(SPEED_LIFTER, 0)
 
+    # ----------- Server Connection -----------------------
+
+    # Communicate with the http server via files
+
+    def write_status(self):
+        status = { "status": "waiting for command" }
+        with open("./status.json", "w") as f:
+            f.write(json.dumps(status))
+
+    def read_command(self):
+        with open("./command.json", "r") as f:
+            return json.loads(f.read())
+        
+    def reset_command(self):
+        with open("./command.json", "w") as f:
+            f.write('{ "command": "wait" }')
+
+    def connect(self):
+        self.write_status()
+        self.reset_command()
+
+
+        while not self.is_button_pressed():
+            self.cls()
+            self.print("Waiting for commands")
+
+            command = self.read_command()
+            cmd = command["command"]
+            if cmd == "solve":
+                self.reset_command()
+                self.connect_solve(command["pattern"])
+            elif cmd == "wait":
+                pass
+            else:
+                raise Exception("Unknown command: " + cmd)
+            self.sleep(1)
     
-    def connect_bluetooth(self):
-        server = BluetoothMailboxServer()
-        mbox = TextMailbox('greeting', server)
+    def connect_solve(self, pattern):
+        print("Solving" + str(pattern))
 
-        self.cls()
-        self.print("Waiting for Bluetooth")
-        server.wait_for_connection()
-
-        self.cls()
-        self.print("Connected - Waiting for message")
-
-        mbox.wait()
-        self.print(mbox.read())
-        mbox.send('hello to you!')
+        ui = PuzzleUI(self)
+        ui.puzzle = PuzzleState(pattern)
+        try:
+            ui.run()
+        finally:
+            pass
+        
 
 UIController().init()
 
