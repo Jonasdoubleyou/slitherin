@@ -124,4 +124,18 @@ class PuzzleStateTest(TestCase):
              7, 4, 5,
              8, 0, 6)))
 
+class StepSequenceTest(TestCase):
+    def eq(self, a: PuzzleState, b: PuzzleState, msg: str):
+        self.assertListEqual(a.fields, b.fields, msg)
+        self.assertEqual(a.free_pos, b.free_pos, msg)
+
+    def test_random(self):
+        for i in range(0, 1000):
+            sequence = StepSequence(list())
+            sequence.fillRandom(5)
+            
+            puzzle = PuzzleState()
+            sequence.apply(puzzle)
+            sequence.invert().apply(puzzle)
+            self.eq(puzzle, PuzzleState(), sequence.to_str())
 main()

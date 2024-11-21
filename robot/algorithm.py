@@ -202,10 +202,8 @@ class PuzzleState:
 
     
 class StepSequence:
-    steps = list()
-
-    def __init__(self, steps = list()):
-        self.steps = steps
+    def __init__(self, steps = None):
+        self.steps = steps if steps != None else list()
 
     def fillRandom(self, length: int, puzzle: PuzzleState = PuzzleState()):
         current_state = PuzzleState(puzzle.fields)
@@ -214,6 +212,7 @@ class StepSequence:
             current_step = current_state.randomStep(current_step)
             self.steps.append(current_step)
             current_state.apply(current_step)
+        
 
     def invert(self):
         steps = list()
