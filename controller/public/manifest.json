@@ -1,0 +1,9 @@
+{
+  "short_name": "Sliding Puzzle",
+  "name": "Sliding Puzzle",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
