@@ -7,9 +7,16 @@
     <meta name="theme-color" content="#000000" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Sliding Puzzle Controller</title>
+    <% for (const cssFile of htmlWebpackPlugin.files.css) { %>
+        <style><%= compilation.assets[cssFile.substr(htmlWebpackPlugin.files.publicPath.length)].source() %></style>
+    <% } %>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+
+    <% for (const jsFile of htmlWebpackPlugin.files.js) { %>
+        <script><%= compilation.assets[jsFile.substr(htmlWebpackPlugin.files.publicPath.length)].source() %></script>
+    <% } %>
   </body>
 </html>
