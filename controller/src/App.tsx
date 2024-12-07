@@ -3,6 +3,8 @@ import { useStatus } from './controller';
 import { Scanner } from './Scanner';
 import { Pattern } from './pattern';
 
+const SCANNER_URL = "https://slitherin.wilms.ninja";
+
 export function setAddress(host: string) {
     localStorage.setItem("slitherin-host", host);
 }
@@ -22,16 +24,16 @@ function App() {
 
 function SolverApp({ pattern }: { pattern: string }) {
     const { status, sendCommand, currentCommand } = useStatus();
-    function startGame(pattern: Pattern) {
+    function startGame() {
         sendCommand({
             command: "solve",
-            pattern
+            pattern: pattern.split("").map(it => +it) as Pattern
         });
     }
 
-    useEffect(() => {
-        startGame(pattern.split("").map(it => +it) as Pattern);
-    }, [pattern])
+    function newGame() {
+        window.location.href = SCANNER_URL;
+    }
 
     return (
         <div className="App">
@@ -45,7 +47,19 @@ function SolverApp({ pattern }: { pattern: string }) {
             {currentCommand && <h2 className="info">
                 Sent {currentCommand.command}  
             </h2>}
-            {status.status === "waiting" && <h2 className="success">Established Connection</h2>}
+            {status.status === "aborted" && <h2 className="info">Game was aborted</h2>}
+            {status.status === "finish" && <h2 className="success">Game was solved in {(status.duration ?? 0)} seconds</h2>}
+            {status.status === "solve-failed" && <h2 className="error">Unsolvable Game!</h2>}
+            {status.status === "solve" && <h2 className="info">Searching solution (depth: {status.search_depth}, duration: {status.duration ?? 0}ms)</h2>}
+            {status.status === "move" && <>
+                <h2 className="info">Applying solution</h2>
+                <p>
+                    {status.text}
+                </p>
+            </>}
+            
+            {(status.status === "waiting" || status.status === "finish") && <button onClick={startGame}>Start Game!</button>}
+            {(status.status === "solve-failed" || status.status === "waiting" || status.status === "aborted" || status.status === "finish") && <button onClick={newGame}>New Game</button>}
         </div>)
     ;
 }

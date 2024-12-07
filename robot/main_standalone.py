@@ -35,4 +35,16 @@ class UIController:
     def finish(self):
         pass
 
+    def done(self, duration):
+        pass
+
+    def solve_progress(self, duration, max_depth):
+        pass
+
+    def solve_failed(self):
+        pass
+
+    def solve_succeeded(self, duration, solution_depth):
+        pass
+
 PuzzleUI(UIController()).init()

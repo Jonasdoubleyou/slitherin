@@ -38,6 +38,8 @@ class PuzzleUI:
         self.ctrl.print("in " + str(duration) + "s")
         self.ctrl.print("")
         self.ctrl.print("Want to play again?")
+
+        self.ctrl.done(duration)
         self.ctrl.wait_for_enter()
 
     def init_random(self):
@@ -65,9 +67,13 @@ class PuzzleUI:
         self.ctrl.print("Solving Puzzle")
         solver = PuzzleSolver(self.puzzle)
         
+        self.ctrl.solve_progress(0, 0)
+        total_start_time = self.ctrl.time_ms()
+
         # "the 8 Puzzle always can be solved in no more than 31 single-tile moves or 24 multi-tile moves"
         # ~ https://en.wikipedia.org/wiki/15_puzzle
         for max_depth in (5, 10, 15, 24):
+            self.ctrl.solve_progress(max_depth, self.ctrl.time_ms() - total_start_time)
             self.ctrl.print("+ depth " + str(max_depth))
             start_time = self.ctrl.time_ms()
             solver.solve(max_depth)
@@ -80,13 +86,15 @@ class PuzzleUI:
         if solver.solution == None:
             self.ctrl.cls()
             self.ctrl.print("Unsolvable Puzzle")
-            self.wait_for_input()
+            self.ctrl.wait_for_enter()
+            self.ctrl.solve_failed()
 
             raise Exception("Failed to solve puzzle")
         
         self.cursor = StepSequenceCursor(solver.solution, self.puzzle)
 
         self.ctrl.cls()
+        self.ctrl.solve_succeeded(len(solver.solution.steps), self.ctrl.time_ms() - total_start_time)
         self.ctrl.print("Solved Puzzle")
 
     def play(self):

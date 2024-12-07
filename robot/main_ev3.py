@@ -5,13 +5,10 @@
 # Click "Open user guide" on the EV3 extension tab for more information.
 
 from pybricks.hubs import EV3Brick
-from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
-                                 InfraredSensor, UltrasonicSensor, GyroSensor)
-from pybricks.parameters import Port, Stop, Direction, Button, Color
-from pybricks.tools import wait, StopWatch, DataLog
-from pybricks.robotics import DriveBase
-from pybricks.media.ev3dev import SoundFile, ImageFile, Font
-from pybricks.messaging import BluetoothMailboxServer, TextMailbox
+from pybricks.ev3devices import Motor
+from pybricks.parameters import Port, Button
+from pybricks.tools import wait, StopWatch
+from pybricks.media.ev3dev import Font
 
 import json
 
@@ -44,6 +41,9 @@ class UIController:
     clock = StopWatch()
     rowIdx = 0
 
+    # Connected to an external Device, do not input via EV3
+    controlled = False
+
     def __init__(self):
         small_font = Font(size=15, bold=True, monospace=True)
         self.ev3.screen.set_font(small_font)
@@ -57,9 +57,6 @@ class UIController:
         self.lock_even = None
 
     def init(self):
-        # self.connect_bluetooth()
-        # return
-
         while True:
             selection = self.select("Sliding Puzzle", ["Start", "Calibrate Axis", "Calibrate Lifter", "Connect"])
             if selection == "Calibrate Axis":
@@ -152,11 +149,17 @@ class UIController:
         wait(duration * 1000)
 
     def wait_for_enter(self):
+        if self.controlled:
+            return
+
         self.print("Go?")
         while self.wait_for_button() != Button.CENTER:
             wait(10)
 
     def select(self, title, values):
+        if self.controlled:
+            raise Exception("Cannot select in controlled mode")
+
         selectedIdx = 0
         while True:
             self.cls()
@@ -178,16 +181,17 @@ class UIController:
         return any(self.ev3.buttons.pressed())
 
     def wait_for_button(self):
+        if self.controlled:
+            return
+
         while len(self.ev3.buttons.pressed()) != 1:
             wait(10)
         btn = self.ev3.buttons.pressed()[0]
         while self.is_button_pressed():
             wait(10)
         return btn
-
-    # ------- Interface to Algorithm --------------------------
-
-    def do_move(self, step: Step, state: PuzzleState):
+    
+    def interrupt_point(self):
         # Check for interrupt by user and stop
         if self.is_button_pressed():
             self.cls()
@@ -197,6 +201,23 @@ class UIController:
             if selection == "Finish":
                 raise Exception("Abort")
             self.cls()
+
+        # Check for interrupt via external communication
+        cmd = self.read_command()
+        if cmd["command"] == "exit":
+            self.reset_command()
+            raise Exception("Abort")
+
+    # ------- Interface to Algorithm --------------------------
+
+    def do_move(self, step: Step, state: PuzzleState):
+        self.interrupt_point()
+        
+        # Update status for external communication
+        self.write_status({
+            "status": "move",
+            "text": state.to_str(step)
+        })
 
         # If the target is an even position, lock it.
         # This inversely unlocks all tiles moving to
@@ -229,6 +250,36 @@ class UIController:
     def finish(self):
         self.reset_tilt()
         self.unlock()
+        self.write_status({
+            "status": "aborted"
+        })
+
+    def done(self, duration):
+        self.write_status({
+            "status": "finish",
+            "duration": duration
+        })
+
+    def solve_progress(self, search_depth, duration):
+        self.interrupt_point()
+
+        self.write_status({
+            "status": "solve",
+            "search_depth": search_depth,
+            "duration": duration
+        })
+
+    def solve_failed(self):
+        self.write_status({
+            "status": "solve-failed"
+        })
+
+    def solve_succeeded(self, solution_length, duration):
+        self.write_status({
+            "status": "solve-succeeded",
+            "duration": duration,
+            "solution_length": solution_length
+        })
 
     # ------- Axis Controller -------------------------------
 
@@ -277,8 +328,7 @@ class UIController:
 
     # Communicate with the http server via files
 
-    def write_status(self):
-        status = { "status": "waiting for command" }
+    def write_status(self, status):
         with open("./status.json", "w") as f:
             f.write(json.dumps(status))
 
@@ -291,28 +341,30 @@ class UIController:
             f.write('{ "command": "wait" }')
 
     def connect(self):
-        self.write_status()
+        self.write_status({ "status": "waiting" })
         self.reset_command()
+        self.controlled = True
 
+        try:
+            while not self.is_button_pressed():
+                self.cls()
+                self.print("Waiting for commands")
 
-        while not self.is_button_pressed():
-            self.cls()
-            self.print("Waiting for commands")
-
-            command = self.read_command()
-            cmd = command["command"]
-            if cmd == "solve":
-                self.reset_command()
-                self.connect_solve(command["pattern"])
-            elif cmd == "wait":
-                pass
-            else:
-                raise Exception("Unknown command: " + cmd)
-            self.sleep(1)
+                command = self.read_command()
+                cmd = command["command"]
+                if cmd == "solve":
+                    self.reset_command()
+                    self.connect_solve(command["pattern"])
+                elif cmd == "wait":
+                    pass
+                else:
+                    raise Exception("Unknown command: " + cmd)
+                self.sleep(1)
+        finally:
+            self.controlled = False
+            self.write_status({ "status": "not running" })
     
     def connect_solve(self, pattern):
-        print("Solving" + str(pattern))
-
         ui = PuzzleUI(self)
         ui.puzzle = PuzzleState(pattern)
         try:

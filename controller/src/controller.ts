@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Pattern } from "./pattern";
 
 export interface Status {
-    status: "no connection" | "not running" | "waiting" | "solving"; // ...
-    state?: string;
+    status: "no connection" | "not running" | "waiting" | "solve" | "solve-failed" | "solve-succeeded" | "move" | "aborted" | "finish";
+    duration?: number;
+    search_depth?: number;
+    text?: string;
 }
 
 export interface Command {
@@ -13,7 +15,7 @@ export interface Command {
 
 
 export async function getStatus(): Promise<Status> {
-    return await (await fetch(`/status`)).json();
+    return await (await fetch(`/status`, { signal: AbortSignal.timeout(20000) })).json();
 }
 
 export function useStatus() {
@@ -26,6 +28,7 @@ export function useStatus() {
         await fetch(`/command`, {
             method: "POST",
             body: JSON.stringify(command),
+            signal: AbortSignal.timeout(20000)
         });
     }
 
