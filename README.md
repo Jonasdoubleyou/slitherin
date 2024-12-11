@@ -7,8 +7,8 @@ Solves a 3x3 sliding puzzle using a custom LEGO brick image detection and a moto
 Main ideas (you might want to steal):
 - **A sliding puzzle solver** implemented in [Python](./robot/algorithm.py) and [Typescript](./controller/src/algorithm.ts) that finds the best solution for a 3x3 sliding puzzle in under 10 seconds (usually in a few milliseconds)
 - **A handcrafted image detection for LEGO bricks in [300 lines of Typescript](./controller/src/pattern.ts)** which detects brick patterns by clustering yellow pixels (this is conceptually similar to a single-layer convolutional network)
-- **Communication between the EV3 Motor Controller in Micropython and a Web-UI that can be run on any device** - by hosting a Webserver on the EV3 which can be opened on a device that is connected via Bluetooth + Tethering, and which communicated to the Micropython runtime via files
-- A **[thousand piece Lego robot](./documentation/instructions_manual.pdf)** that solves a sliding puzzle by tiling the playing field ("the crown") while blocking tiles from moving by lifting up and down even and uneven fields ("the lifter")
+- **Communication between the EV3 Motor Controller in Micropython and a Web-UI that can be run on any device** - by hosting a Webserver on the EV3 which can be opened on a device that is connected via Bluetooth + Tethering, and which communicates to the Micropython runtime via files
+- A **[thousand piece Lego robot](./documentation/instructions_manual.pdf)** that solves a sliding puzzle by tilting the playing field ("the crown") while blocking tiles from moving by lifting up and down even and uneven fields ("the lifter")
 
 | The robot     | The scanner        |
 | ------------- |:-------------:|
