@@ -4,13 +4,13 @@
 Solves a 3x3 sliding puzzle using a custom LEGO brick image detection and a motor control for LEGO Mindstorms EV3 - A HKA project work by Fabian Holfelder und Jonas Wilms.
 
 Main ideas (you might want to steal):
-- A sliding puzzle solver implemented in [./robot/algorithm.py](Python) and [./controller/src/algorithm.ts](Typescript) that finds the best solution for a 3x3 sliding puzzle in under 10 seconds (usually in a few milliseconds)
-- A handcrafted image detection for LEGO bricks in [./controller/src/pattern.ts](300 lines of Typescript) which detects brick patterns by clustering yellow pixels (this is conceptually similar to a single-layer convolutional network)
-- Communication between the EV3 Motor Controller in Micropython and a Web-UI that can be run on any device - by hosting a Webserver on the EV3 which can be opened on a device that is connected via Bluetooth + Tethering, and which communicated to the Micropython runtime via files
+- **A sliding puzzle solver** implemented in [./robot/algorithm.py](Python) and [./controller/src/algorithm.ts](Typescript) that finds the best solution for a 3x3 sliding puzzle in under 10 seconds (usually in a few milliseconds)
+- **A handcrafted image detection for LEGO bricks in [./controller/src/pattern.ts](300 lines of Typescript)** which detects brick patterns by clustering yellow pixels (this is conceptually similar to a single-layer convolutional network)
+- **Communication between the EV3 Motor Controller in Micropython and a Web-UI that can be run on any device** - by hosting a Webserver on the EV3 which can be opened on a device that is connected via Bluetooth + Tethering, and which communicated to the Micropython runtime via files
 
 ## Installation
 
-1. Build the Lego Robot following the instruction manual
+1. Build the Lego Robot following the **[instruction manual](./documentation/instructions_manual.pdf)** (you might also be interested in the [IO File](./documentation/instructions.io) for Bricklink Studio)
 2. Check out this repository
 3. Install VS Code with the "LEGO MINDSTORMS EV3 MicroPython" extension
 4. Install [ev3-micropython](https://pybricks.com/ev3-micropython/startinstall.html) on the EV3 (we used V2.0.0)
