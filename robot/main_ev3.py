@@ -13,7 +13,7 @@ from pybricks.media.ev3dev import Font
 import json
 
 from ui import PuzzleUI
-from algorithm import PuzzleState, Step, StepDirection
+from algorithm import PuzzleState, Step, StepDirection, StepSequenceCursor, StepSequence
 
 # ------- Configuration --------------------
 # The angle the motor turns in each direction
@@ -154,7 +154,7 @@ class UIController:
 
         self.print("Go?")
         while self.wait_for_button() != Button.CENTER:
-            wait(10)
+            wait(100)
 
     def select(self, title, values):
         if self.controlled:
@@ -185,10 +185,10 @@ class UIController:
             return
 
         while len(self.ev3.buttons.pressed()) != 1:
-            wait(10)
+            wait(100)
         btn = self.ev3.buttons.pressed()[0]
         while self.is_button_pressed():
-            wait(10)
+            wait(100)
         return btn
     
     def interrupt_point(self):
@@ -196,7 +196,7 @@ class UIController:
         if self.is_button_pressed():
             self.cls()
             while self.is_button_pressed():
-                wait(10)
+                wait(100)
             selection = self.select("Stopped", ["Resume", "Finish"])
             if selection == "Finish":
                 raise Exception("Abort")
@@ -355,6 +355,12 @@ class UIController:
                 if cmd == "solve":
                     self.reset_command()
                     self.connect_solve(command["pattern"])
+                if cmd == "apply":
+                    self.reset_command()
+                    self.connect_solve(command["pattern"], command["solution"])
+                elif cmd == "reset":
+                    self.reset_command()
+                    self.write_status({ "status": "waiting" })
                 elif cmd == "wait":
                     pass
                 else:
@@ -364,9 +370,15 @@ class UIController:
             self.controlled = False
             self.write_status({ "status": "not running" })
     
-    def connect_solve(self, pattern):
+    def connect_solve(self, pattern, solution):
         ui = PuzzleUI(self)
         ui.puzzle = PuzzleState(pattern)
+
+        if solution is not None:
+            ui.cursor = StepSequenceCursor(
+                StepSequence().from_str(solution),
+                ui.puzzle
+            )
         try:
             ui.run()
         finally:

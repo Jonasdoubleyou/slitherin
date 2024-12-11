@@ -90,7 +90,7 @@ const mappings = [
     }, */
 ];
 
-function isValidPattern(pattern: Pattern) {
+export function isValidPattern(pattern: Pattern) {
     const positions = Array.from({ length: 9 }, () => -1);
 
     for (const [idx, tile] of pattern.entries()) {

@@ -16,6 +16,7 @@ class PuzzleUI:
                 else:
                     return
                 
+                self.cursor = None
                 self.run()
             except:
                 pass
@@ -27,7 +28,8 @@ class PuzzleUI:
         self.ctrl.wait_for_enter()
 
         start_time = self.ctrl.time_ms()
-        self.solve()
+        if self.cursor == None:
+            self.solve()
         self.play()
         duration = (self.ctrl.time_ms() - start_time) // 1000
 

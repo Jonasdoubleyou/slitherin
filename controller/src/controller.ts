@@ -9,8 +9,12 @@ export interface Status {
 }
 
 export interface Command {
-    "command": "solve";
+    "command": 
+        "solve" | // Find a solution for the pattern on an EV3, then apply it
+        "apply" |  // Apply a solution computed here on the EV3
+        "reset"; // Reset the status on the EV3
     "pattern"?: Pattern;
+    "solution"?: string;
 }
 
 

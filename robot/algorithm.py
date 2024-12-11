@@ -40,6 +40,18 @@ class StepDirection:
         if self == StepDirection.LEFT:
             return "<"
         raise Exception("Unknown direction")
+    
+    @staticmethod
+    def from_char(char):
+        if char == "v":
+            return StepDirection.DOWN
+        if char == "^":
+            return StepDirection.UP
+        if char == ">":
+            return StepDirection.RIGHT
+        if char == "<":
+            return StepDirection.LEFT
+        raise Exception("Unknown direction")
         
     # ---- Position Utilities -----
     def offset_in_dir(self, pos: int):
@@ -79,6 +91,15 @@ class Step:
     
     def to_str(self):
         return self.direction.char() + str(self.move_count)
+
+    @staticmethod
+    def from_str(chars):
+        if len(chars) != 2:
+            raise Exception("Invalid Step " + chars)
+        return Step(
+            StepDirection.from_char(chars[0]),
+            int(chars[1])
+        )
 
 # ----- PuzzleState -----
 # The state of the puzzle at a certain point in time
@@ -211,8 +232,7 @@ class StepSequence:
         for i in range(0, length):
             current_step = current_state.randomStep(current_step)
             self.steps.append(current_step)
-            current_state.apply(current_step)
-        
+            current_state.apply(current_step)    
 
     def invert(self):
         steps = list()
@@ -229,6 +249,11 @@ class StepSequence:
         for step in self.steps:
             result += " " + step.to_str()
         return result
+    
+    @staticmethod
+    def from_str(str):
+        print("StepSequence::from_str" + str)
+        return StepSequence([Step.from_str(step) for step in str[1:].split(" ")])
 
 
 class StepSequenceCursor:
@@ -268,7 +293,7 @@ class PuzzleSolver:
         self.solution = None
 
     def solve_adaptive(self):
-        for max_depth in (5, 10, 15, 20):
+        for max_depth in (5, 10, 15, 24):
             self.solve(max_depth)
             if self.solution != None:
                 return

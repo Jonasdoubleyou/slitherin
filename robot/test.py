@@ -1,5 +1,5 @@
 from unittest import TestCase, main
-from algorithm import StepDirection, Step, PuzzleState, StepSequence, SIZE_X
+from algorithm import StepDirection, Step, PuzzleState, StepSequence, PuzzleSolver, SIZE_X
 
 class TestStepDirection(TestCase):
     def test_inverse(self):
@@ -138,4 +138,12 @@ class StepSequenceTest(TestCase):
             sequence.apply(puzzle)
             sequence.invert().apply(puzzle)
             self.eq(puzzle, PuzzleState(), sequence.to_str())
+
+class SolverTest(TestCase):
+    def test_solve(self):
+        puzzle = PuzzleState([1, 2, 3, 4, 0, 6, 7, 8, 5])
+        solver = PuzzleSolver(puzzle)
+        solver.solve_adaptive()
+        self.assertEqual(solver.solution, None)
+
 main()
