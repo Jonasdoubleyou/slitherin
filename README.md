@@ -10,8 +10,8 @@ Main ideas (you might want to steal):
 - **Communication between the EV3 Motor Controller in Micropython and a Web-UI that can be run on any device** - by hosting a Webserver on the EV3 which can be opened on a device that is connected via Bluetooth + Tethering, and which communicated to the Micropython runtime via files
 - A **[thousand piece Lego robot](./documentation/instructions_manual.pdf)** that solves a sliding puzzle by tiling the playing field ("the crown") while blocking tiles from moving by lifting up and down even and uneven fields ("the lifter")
 
-![The sliding puzzle solver robot](./documentation/robot.jpeg)
-![The pattern detection algorithm for Lego bricks](./documentation/pattern_matcher.jpeg)
+<img src="./documentation/robot.jpeg" alt="The sliding puzzle solver robot" width="300px" />
+<img src="./documentation/pattern_matcher.jpeg" alt="The pattern detection algorithm for Lego bricks" width="300px" />
 
 
 ## Installation
