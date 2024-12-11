@@ -58,11 +58,11 @@ class PuzzleUI:
         self.ctrl.cls()
         template = self.ctrl.select("Difficulty", ["easy", "medium", "hard"])
         if template == "easy":
-            self.puzzle = PuzzleState((1, 2, 3, 4, FREE_FIELD, 6, 7, 8, 5))
+            self.puzzle = PuzzleState((7, FREE_FIELD, 2, 5, 1, 3, 8, 4, 6))
         elif template == "medium":
-            self.puzzle = PuzzleState((1, 2, 3, 4, FREE_FIELD, 5, 7, 8, 6))
+            self.puzzle = PuzzleState((1, 5, 7, 8, 3, FREE_FIELD, 2, 4, 6))
         else:
-            self.puzzle = PuzzleState((1, 2, 3, 4, FREE_FIELD, 5, 7, 8, 6))
+            self.puzzle = PuzzleState((FREE_FIELD, 8, 7, 6, 5, 4, 3, 2, 1))
 
     def solve(self):
         self.ctrl.cls()
