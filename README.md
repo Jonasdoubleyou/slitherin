@@ -27,6 +27,7 @@ Main ideas (you might want to steal):
 6. Open an SSH Terminal on the EV3 to set up the Webserver on the EV3 by installing it as a SystemD Service:
 
 ```
+cd ~/robot
 sudo cp http_runner.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl start http_runner

@@ -2,6 +2,10 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 PATH = "/home/robot/robot/"
 
+index_file = ""
+with open(PATH + "index.html", "r") as f:
+    index_file = f.read().encode(encoding='utf_8')
+
 class WebServer(BaseHTTPRequestHandler):
     def set_cors(self):
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -31,9 +35,7 @@ class WebServer(BaseHTTPRequestHandler):
         self.set_cors()
         self.send_header('Content-Type', 'text/html')
         self.end_headers()
-
-        with open(PATH + "index.html", "r") as f:
-            self.wfile.write(f.read().encode(encoding='utf_8'))
+        self.wfile.write(index_file)
 
     def get_status(self):
         self.send_response(200)

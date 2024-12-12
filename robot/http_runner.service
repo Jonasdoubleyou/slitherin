@@ -6,7 +6,7 @@ WorkingDirectory=/home/robot/robot/
 ExecStart=/usr/bin/python3 /home/robot/robot/http_runner.py
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
-Type=notify
+Type=simple
 User=root
 
 [Install]
